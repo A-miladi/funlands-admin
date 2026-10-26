@@ -61,3 +61,18 @@ test('game runtime settings and gallery are saved and unsafe paths are rejected'
  const updated=await (await call(`games/${game.id}`,'PATCH',body,cookie)).json();assert.equal(updated.webGameUri,body.webGameUri);assert.equal(updated.adminOnly,true);assert.deepEqual(updated.images,body.images);
  await assert.rejects(()=>call(`games/${game.id}`,'PATCH',{...body,webGameUri:'javascript:alert(1)'},cookie),e=>e.message==='INVALID_GAME_PATH');
 });
+
+test('startup session lookup rejects stale cookies and disabled accounts before loading the workspace', async () => {
+  const {adminFromSession} = load('server');
+  assert.throws(() => adminFromSession(undefined), e => e.status === 401);
+  assert.throws(() => adminFromSession('cookie-from-a-previous-server-run'), e => e.status === 401);
+  const cookie = await login();
+  const token = cookie.slice(cookie.indexOf('=') + 1);
+  const admin = adminFromSession(token);
+  assert.equal(admin.email, 'admin@funlands.ir');
+  store.sessions.get(token).expires = Date.now() - 1;
+  assert.throws(() => adminFromSession(token), e => e.status === 401);
+  store.sessions.get(token).expires = Date.now() + 10000;
+  admin.active = false;
+  assert.throws(() => adminFromSession(token), e => e.status === 401);
+});

@@ -345,3 +345,31 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 }
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primary-500) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--color-primary-500);
+    border-radius: 9999px;
+  }
+
+  @supports selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: auto;
+      scrollbar-color: auto;
+    }
+  }
+}

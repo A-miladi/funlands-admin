@@ -10,6 +10,7 @@ import { Link } from "@/i18n/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { AppLoading } from "@/components/common/app-loading";
 import { HeaderActions } from "@/components/common/header-actions";
 import { toast } from "@/lib/toast";
 import { api } from "@/lib/admin/client";
@@ -49,6 +50,7 @@ export function AdminShell({
   const { data, error, l, can, router, refresh } = useAdmin(),
     [menu, setMenu] = useState(false),
     [logoutError, setLogoutError] = useState("");
+  if (!data && (!error || error === "SESSION_REQUIRED")) return <AppLoading />;
   if (!data)
     return (
       <div className="grid min-h-dvh place-items-center bg-background p-6">
@@ -123,10 +125,20 @@ export function AdminShell({
                 prefetch={true}
                 onClick={() => setMenu(false)}
                 aria-current={active[0] === href ? "page" : undefined}
-                className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-xs transition ${active[0] === href ? "border-primary-400/20 bg-primary-500/15 text-primary-700 dark:text-primary-200" : "border-transparent text-base-600 hover:bg-primary-500/5 dark:text-paragraph"}`}
+                className={`relative flex items-center gap-3 rounded-xl border px-3 py-2.5 text-xs transition ${active[0] === href ? "border-primary-400/20 bg-primary-500/15 text-primary-700 dark:text-primary-200" : "border-transparent text-base-600 hover:bg-primary-500/5 dark:text-paragraph"}`}
               >
+                <span
+                  aria-hidden="true"
+                  className={`absolute start-0 top-1/2 h-4 w-px -translate-y-1/2 bg-primary-500 transition-[opacity,scale] duration-300 motion-reduce:transition-none ${active[0] === href ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0"}`}
+                />
                 <Icon name={icon} />
-                {l(fa, en)}
+                <span className="min-w-0 flex-1">{l(fa, en)}</span>
+                <span
+                  aria-hidden="true"
+                  className={`ms-auto flex size-3 shrink-0 items-center justify-center text-primary-500 transition-[opacity,translate] duration-300 ease-out motion-reduce:transition-none ${active[0] === href ? "translate-x-0 opacity-100 starting:-translate-x-3 starting:opacity-0 rtl:starting:translate-x-3" : "-translate-x-3 opacity-0 rtl:translate-x-3"}`}
+                >
+                  <Icon name="down" className="size-3! -rotate-90 rtl:rotate-90" />
+                </span>
               </Link>
             ))}
         </nav>

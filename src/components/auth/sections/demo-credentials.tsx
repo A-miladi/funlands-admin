@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
 import type { LoginModel } from "../use-login-model";
 type Props = Pick<LoginModel, "t" | "setEmail" | "setPassword" | "setStatus">;
@@ -7,11 +8,12 @@ export function DemoCredentials({ t, setEmail, setPassword, setStatus }: Props) 
                 <div>
                   <span className="size-[5px] rounded-full bg-primary-400"/>
                   <strong>{t("demoTitle")}</strong>
-                  <Button variant="unstyled" type="button" onClick={() => {
+                  <Button variant="unstyled" type="button" className="group inline-flex items-center gap-2 rounded-lg bg-primary-500/10 px-2.5 py-2 font-semibold hover:bg-primary-500/20" onClick={() => {
             setEmail("admin@funlands.ir");
             setPassword("Funlands123!");
             setStatus("idle");
         }}>
+                    <Icon name="arrow" className="size-4 rotate-180 text-primary-400 motion-safe:animate-pulse rtl:rotate-0" />
                     {t("fillDemo")}
                   </Button>
                 </div>

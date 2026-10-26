@@ -120,15 +120,15 @@ export function Select({ options, value, onValueChange, placeholder = "—", cla
           "group relative inline-flex h-11 min-w-[var(--select-min-width,9rem)] items-center justify-between gap-4 rounded-xl px-3.5 text-xs text-base-900 dark:text-title",
           appearance === "surface" ? "bg-gradient-to-br from-white to-info-100/60 shadow-sm ring-1 ring-inset ring-info-500/20 hover:ring-primary-400/50 dark:from-card-300 dark:to-card-400 dark:ring-white/10" : "bg-transparent hover:bg-primary-500/10",
           open && appearance === "surface" && "ring-primary-400/60 dark:ring-primary-400/60",
-          iconOnlyOnMobile && "max-sm:justify-center",
+          iconOnlyOnMobile && "max-sm:justify-center max-sm:gap-0 max-sm:p-0",
           className,
         )}
         onClick={() => open ? close() : show()}
         onKeyDown={keydown}
         onBlur={close}
       >
-        <span className="flex min-w-0 items-center gap-2">
-          {leadingIcon && <span aria-hidden="true" className="shrink-0 text-primary-400">{leadingIcon}</span>}
+        <span className={cn("flex min-w-0 items-center gap-2", iconOnlyOnMobile && "max-sm:justify-center max-sm:gap-0")}>
+          {leadingIcon && <span aria-hidden="true" className="flex shrink-0 items-center justify-center leading-none text-primary-400 [&>svg]:block">{leadingIcon}</span>}
           {options[selected]?.image && <Image src={options[selected].image} width={24} height={24} alt="" className="size-6 shrink-0 rounded-md object-cover"/>}
           <span className={cn("truncate", iconOnlyOnMobile && "max-sm:hidden")}>{options[selected]?.label ?? placeholder}</span>
         </span>

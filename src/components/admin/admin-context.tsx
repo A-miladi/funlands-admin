@@ -7,11 +7,11 @@ import { toast } from "@/lib/toast";
 import { api, loadAdmin } from "@/lib/admin/client";
 import { defaultFilters } from "@/lib/admin/analytics";
 import type { Bootstrap, Filters, Permission } from "@/lib/admin/types";
-export function useAdminModel() {
+export function useAdminModel(initialData?: Bootstrap) {
     const locale = useLocale() as "fa" | "en", router = useRouter();
     const sessionRouter = useNextRouter();
     const pathname = usePathname();
-    const [data, setData] = useState<Bootstrap | null>(null), [error, setError] = useState(""), [filters, setFilters] = useState<Filters>(defaultFilters);
+    const [data, setData] = useState<Bootstrap | null>(initialData ?? null), [error, setError] = useState(""), [filters, setFilters] = useState<Filters>(defaultFilters);
     const l = useCallback((fa: string, en: string) => locale === "fa" ? fa : en, [locale]);
     const handleSessionError = useCallback((cause: unknown) => {
         const message = cause instanceof Error ? cause.message : "REQUEST_FAILED";
@@ -56,8 +56,9 @@ export function useAdminModel() {
 }
 type Model = ReturnType<typeof useAdminModel>;
 const Context = createContext<Model | null>(null);
-export function AdminProvider({ children }: {
+export function AdminProvider({ children, initialData }: {
     children: ReactNode;
-}) { return <Context.Provider value={useAdminModel()}>{children}</Context.Provider>; }
+    initialData?: Bootstrap;
+}) { return <Context.Provider value={useAdminModel(initialData)}>{children}</Context.Provider>; }
 export function useAdmin() { const value = useContext(Context); if (!value)
     throw new Error("AdminProvider required"); return value; }

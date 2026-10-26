@@ -12,7 +12,7 @@ import { exportCSV, exportExcel, type ExportCell } from "@/lib/admin/export";
 import { useAdmin } from "../admin-context";
 import { FilterBar } from "../shared/filter-bar";
 import { Heading, Stats, Panel, Table, Info, muted } from "../shared/widgets";
-import { LineChart, Bars } from "../shared/charts";
+import { TrendChart, RingChart } from "../shared/charts";
 type SavedReport = {
   id: string;
   kind: string;
@@ -319,24 +319,20 @@ export function ReportsPage() {
       />
       <div className="mb-5 grid gap-5 xl:grid-cols-2">
         <Panel title={l("روند کاربران یکتا", "Unique users over time")}>
-          <LineChart
+          <TrendChart
             rows={series.map((s) => ({ label: s.date, values: [s.users] }))}
             series={[l("کاربران یکتا", "Unique users")]}
           />
         </Panel>
         <Panel title={l("توزیع محتوا", "Content distribution")}>
-          <Bars
-            rows={["book", "video", "audio", "drawing", "animation"].map(
-              (type) => ({
-                label: type,
-                value: data.contents.length
-                  ? (data.contents.filter((c) => c.type === type).length /
-                      data.contents.length) *
-                    100
-                  : 0,
-                count: data.contents.filter((c) => c.type === type).length,
-              }),
-            )}
+          <RingChart
+            rows={[
+              {type: "book", label: l("کتاب", "Books")},
+              {type: "video", label: l("ویدئو", "Videos")},
+              {type: "audio", label: l("صوت", "Audio")},
+              {type: "drawing", label: l("نقاشی", "Drawings")},
+              {type: "animation", label: l("انیمیشن", "Animations")},
+            ].map(({type, label}) => ({label, value: data.contents.filter(content => content.type === type).length}))}
           />
         </Panel>
       </div>

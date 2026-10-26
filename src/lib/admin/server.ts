@@ -25,9 +25,17 @@ store.data.studio = store.data.studio.filter(row => studioKinds.includes(row.kin
 export class ApiError extends Error {
     constructor(public status: number, message: string) { super(message); }
 }
-export function requireAdmin(request: Request) { const token = /(?:^|;\s*)funlands_session=([^;]+)/.exec(request.headers.get("cookie") ?? "")?.[1]; const session = token && store.sessions.get(token); if (!session || session.expires < Date.now())
-    throw new ApiError(401, "SESSION_REQUIRED"); const admin = store.data.admins.find(a => a.id === session.adminId && a.active); if (!admin)
-    throw new ApiError(401, "SESSION_REQUIRED"); return admin; }
+export function adminFromSession(token: string | undefined) {
+    const session = token ? store.sessions.get(token) : undefined;
+    if (!session || session.expires < Date.now()) throw new ApiError(401, "SESSION_REQUIRED");
+    const admin = store.data.admins.find(a => a.id === session.adminId && a.active);
+    if (!admin) throw new ApiError(401, "SESSION_REQUIRED");
+    return admin;
+}
+export function requireAdmin(request: Request) {
+    const token = /(?:^|;\s*)funlands_session=([^;]+)/.exec(request.headers.get("cookie") ?? "")?.[1];
+    return adminFromSession(token);
+}
 export function roleFor(admin: Admin) { const role = store.data.roles.find(r => r.id === admin.roleId && r.skinId === admin.skinId); if (!role)
     throw new ApiError(403, "ROLE_NOT_FOUND"); return role; }
 export function requirePermission(admin: Admin, permission: Permission) { if (!roleFor(admin).permissions.includes(permission))
