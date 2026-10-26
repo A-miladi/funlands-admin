@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { toast } from "@/lib/toast";
 import { api } from "@/lib/admin/client";
 import { useAdmin } from "../admin-context";
 import { Heading, Panel, Info, ErrorNote, fieldClass, muted } from "../shared/widgets";
@@ -22,9 +23,11 @@ export function SettingsPage() {
     return <><Heading title={l("تنظیمات محیط نمایشی", "Demo workspace settings")}/><Info>{l("داده‌ها و فایل‌های بارگذاری‌شده فقط در حافظهٔ سرور محلی نگه داشته می‌شوند و با راه‌اندازی مجدد به نمونه‌های اولیه برمی‌گردند. این محیط به بک‌اند واقعی یا کاربران واقعی متصل نیست.", "Data and uploaded files live in local server memory and reset on restart. This workspace has no connection to a production backend or real users.")}</Info><div className="grid gap-5 xl:grid-cols-2"><Panel title={l("حساب و محدودهٔ فعلی", "Current account & scope")}><dl className="space-y-4 text-xs"><p>{data.currentAdmin.email}</p><p>{l("پوسته", "Skin")}: {data.currentAdmin.skinId}</p><p>{l("رمز ورود نمونه", "Demo password")}: <code>Funlands123!</code></p><p className={muted}>{l("برای تست نقش‌ها، از حساب نمونهٔ دیگر وارد شوید.", "Switch demo accounts to test role restrictions.")}</p></dl><div className="mt-5 space-y-4"><Select aria-label={l("حساب آزمایشی", "Demo account")} value={account} onValueChange={setAccount} options={["admin", "content", "games", "support", "viewer"].map(name => ({ value: `${name}@funlands.ir`, label: `${name}@funlands.ir` }))}/><Button variant="outline" disabled={busy} onClick={async () => { setBusy(true); setError(""); try {
         await api("login", "POST", { email: account, password: "Funlands123!" });
         await refresh();
+        toast.success(l("حساب آزمایشی تغییر کرد.", "Demo account switched."));
     }
     catch (e) {
         setError((e as Error).message);
+        toast.error(l("تغییر حساب انجام نشد.", "Unable to switch accounts."));
     }
     finally {
         setBusy(false);

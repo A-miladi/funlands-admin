@@ -1,4 +1,9 @@
 "use client";
+import {
+  studioKinds,
+  studioSections,
+  type StudioKind,
+} from "@/lib/admin/studio";
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
 import { Link } from "@/i18n/navigation";
@@ -6,10 +11,17 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { HeaderActions } from "@/components/common/header-actions";
+import { toast } from "@/lib/toast";
 import { api } from "@/lib/admin/client";
 import type { Permission } from "@/lib/admin/types";
 import { useAdmin } from "./admin-context";
 import { muted, ErrorNote } from "./shared/widgets";
+const studioIcons: Record<StudioKind, string> = {
+  landing: "layout",
+  categories: "categories",
+  avatars: "avatar",
+  moderation: "moderation",
+};
 const navigation: [string, string, string, string, Permission?][] = [
   ["/", "home", "داشبورد", "Dashboard"],
   ["/users", "users", "کاربران", "Users", "users:read"],
@@ -19,6 +31,12 @@ const navigation: [string, string, string, string, Permission?][] = [
   ["/content", "content", "کتابخانه محتوا", "Content", "content:read"],
   ["/reports", "report", "گزارش و خروجی", "Reports", "reports:read"],
   ["/roles", "shield", "نقش‌ها و مجوزها", "Roles & permissions", "roles:write"],
+  ...studioKinds.map((kind): [string, string, string, string, Permission?] => [
+    `/${kind}`,
+    studioIcons[kind],
+    ...studioSections[kind].label,
+    studioSections[kind].read,
+  ]),
   ["/settings", "setting", "تنظیمات", "Settings"],
 ];
 export function AdminShell({
@@ -28,7 +46,7 @@ export function AdminShell({
   path: string;
   children: ReactNode;
 }) {
-  const { data, error, l, can, router, notice, refresh } = useAdmin(),
+  const { data, error, l, can, router, refresh } = useAdmin(),
     [menu, setMenu] = useState(false),
     [logoutError, setLogoutError] = useState("");
   if (!data)
@@ -77,6 +95,7 @@ export function AdminShell({
       >
         <Link
           href="/"
+          prefetch={true}
           className="mb-5 flex items-center gap-2 px-2 py-2 font-orbitron text-lg font-bold"
         >
           <Image src="/images/LargeLogo.webp" width={35} height={35} alt="" />
@@ -101,6 +120,7 @@ export function AdminShell({
               <Link
                 key={href}
                 href={href}
+                prefetch={true}
                 onClick={() => setMenu(false)}
                 aria-current={active[0] === href ? "page" : undefined}
                 className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-xs transition ${active[0] === href ? "border-primary-400/20 bg-primary-500/15 text-primary-700 dark:text-primary-200" : "border-transparent text-base-600 hover:bg-primary-500/5 dark:text-paragraph"}`}
@@ -110,7 +130,7 @@ export function AdminShell({
               </Link>
             ))}
         </nav>
-        <div className="mt-auto pt-5">
+        <div className="mt-auto w-full pt-5">
           <p
             className={`mb-4 rounded-lg bg-primary-500/5 p-3 text-[10px] leading-6 ${muted}`}
           >
@@ -126,19 +146,21 @@ export function AdminShell({
             {data.currentAdmin.email}
           </p>
           <Button
-            variant="ghost"
-            className="mt-3 w-full gap-2 py-2 text-xs"
+            variant="outline"
+            className="mt-3 w-full justify-between! py-2 text-xs"
             onClick={async () => {
               try {
                 await api("logout", "POST");
+                toast.success(l("از حساب خارج شدید.", "Signed out successfully."));
                 router.replace("/auth/login");
               } catch (e) {
                 setLogoutError((e as Error).message);
+                toast.error(l("خروج انجام نشد.", "Unable to sign out."));
               }
             }}
           >
+            <p>{l("خروج", "Sign out")}</p>
             <Icon name="logout" />
-            {l("خروج", "Sign out")}
           </Button>
           <ErrorNote error={logoutError} />
         </div>
@@ -172,14 +194,7 @@ export function AdminShell({
           </footer>
         </div>
       </main>
-      {notice && (
-        <div
-          role="status"
-          className="fixed bottom-6 start-1/2 z-[120] -translate-x-1/2 rounded-xl border border-success-500/30 bg-background px-5 py-3 text-sm shadow-xl rtl:translate-x-1/2"
-        >
-          {notice}
-        </div>
-      )}
+
     </div>
   );
 }

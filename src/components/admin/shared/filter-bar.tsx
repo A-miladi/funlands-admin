@@ -54,6 +54,7 @@ export function FilterBar({
               ...data.games.map((g) => ({
                 value: g.id,
                 label: g.title[locale],
+                image: g.cover,
               })),
             ]}
           />

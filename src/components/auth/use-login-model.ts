@@ -2,6 +2,7 @@
 import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { toast } from "@/lib/toast";
 import { api } from "@/lib/admin/client";
 const subscribeToStorage = (callback: () => void) => {
     window.addEventListener("storage", callback);
@@ -32,7 +33,7 @@ export function useLoginModel() {
         try {
             await api("login", "POST", { email: email.trim(), password });
             valid = true;
-        } catch { setStatus("error"); }
+        } catch { setStatus("error"); toast.error(t("error")); }
         if (valid) {
             try {
                 if (remember)

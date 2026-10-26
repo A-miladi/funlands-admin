@@ -1,5 +1,7 @@
+import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next";
 import { DocumentBootstrap } from "@/components/document-bootstrap";
+import { NavigationProvider } from "@/components/common/navigation-progress/navigation-provider";
 import { hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -34,7 +36,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
       </head>
       <body suppressHydrationWarning className="flex min-h-full flex-col">
         <ClientIntlProvider locale={locale} messages={messages} timeZone="Asia/Tehran">
-          <ThemeProvider initialTheme="dark">{children}</ThemeProvider>
+          <ThemeProvider initialTheme="dark"><NavigationProvider>{children}<Toaster /></NavigationProvider></ThemeProvider>
         </ClientIntlProvider>
       </body>
     </html>

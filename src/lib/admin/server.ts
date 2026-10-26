@@ -1,3 +1,5 @@
+import { createStudioSeed } from "./studio-seed";
+import { studioSections, studioKinds, type StudioKind, type StudioSection, type StudioRecord } from "./studio";
 import { randomUUID } from "node:crypto";
 import { createSeed } from "./seed";
 import { aggregate, defaultFilters, filterEvents } from "./analytics";
@@ -18,6 +20,8 @@ const globalStore = globalThis as typeof globalThis & {
     funlandsAdmin?: Store;
 };
 export const store = globalStore.funlandsAdmin ??= { data: createSeed(), sessions: new Map(), files: new Map() };
+store.data.studio ??= createStudioSeed(store.data.games.filter(game => game.skinId === "funlands"), store.data.users.filter(user => user.skinId === "funlands"), store.data.contents.filter(content => content.skinId === "funlands"));
+store.data.studio = store.data.studio.filter(row => studioKinds.includes(row.kind));
 export class ApiError extends Error {
     constructor(public status: number, message: string) { super(message); }
 }
@@ -47,6 +51,7 @@ function audit(admin: Admin, action: string, resourceId: string) { store.data.au
 export function scopedData(admin: Admin) {
     const data = store.data, role = roleFor(admin), can = (p: Permission) => role.permissions.includes(p);
     return { ...data,
+        studio: data.studio.filter(row => row.skinId === admin.skinId && can(studioSections[row.kind].read)),
         users: can("users:read") ? data.users.filter(x => x.skinId === admin.skinId) : [],
         games: can("games:read") || can("analytics:read") || can("errors:read") || can("users:read") ? data.games.filter(x => x.skinId === admin.skinId) : [],
         events: can("analytics:read") || can("errors:read") || can("users:read") ? data.events.filter(x => x.skinId === admin.skinId) : [],
@@ -78,6 +83,50 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
     }
     if (resource === "bootstrap" && method === "GET")
         return Response.json(scopedData(admin), { headers: { "Cache-Control": "no-store" } });
+    if (resource === "studio") {
+        const kind = id as StudioKind, recordId = path[2];
+        if (!studioKinds.includes(kind)) throw new ApiError(404, "RESOURCE_NOT_FOUND");
+        const config: StudioSection = studioSections[kind];
+        requirePermission(admin, config.read);
+        const rows = data.studio.filter(row => row.kind === kind && row.skinId === admin.skinId);
+        if (method === "GET") return Response.json(rows, { headers: { "Cache-Control": "no-store" } });
+        requirePermission(admin, config.write);
+        const current = recordId ? rows.find(row => row.id === recordId) : undefined;
+        if (recordId && !current) throw new ApiError(404, "RESOURCE_NOT_FOUND");
+        if (method === "DELETE") {
+            requirePermission(admin, kind === "landing" ? "games:write" : "content:delete");
+            if (!current) throw new ApiError(404, "RESOURCE_NOT_FOUND");
+            if (data.studio.some(row => row.skinId === admin.skinId && row.id !== current.id && row.fields.categoryId === current.id)) throw new ApiError(409, "RESOURCE_IN_USE");
+            data.studio = data.studio.filter(row => row.id !== current.id);
+            audit(admin, `${kind}.delete`, current.id);
+            return Response.json({ ok: true });
+        }
+        if (method !== "POST" && method !== "PATCH") throw new ApiError(405, "METHOD_NOT_ALLOWED");
+        if (method === "PATCH" && !current || method === "POST" && current) throw new ApiError(400, "INVALID_RESOURCE");
+        const body = await request.json();
+        if (!config.statuses.includes(body.status)) throw new ApiError(400, "INVALID_STATUS");
+        const fields: Record<string, string> = {};
+        if (!body.fields || typeof body.fields !== "object" || Array.isArray(body.fields)) throw new ApiError(400, "INVALID_FIELDS");
+        for (const field of config.fields) {
+            const value = text(body.fields[field.key] ?? "", field.type === "textarea" ? 4000 : 500);
+            if (field.options && !field.options.includes(value)) throw new ApiError(400, "INVALID_OPTION");
+            if (["games", "user", "content", "category"].includes(field.type ?? "") && value) {
+                const ids = field.type === "games" ? value.split(",") : [value];
+                const list = field.type === "games" ? data.games : field.type === "user" ? data.users : field.type === "content" ? data.contents.filter(c => !c.deleted) : data.studio.filter(r => r.kind === "categories");
+                if (!ids.every(ref => list.some(row => row.id === ref && row.skinId === admin.skinId))) throw new ApiError(400, "INVALID_REFERENCE");
+            }
+            if (field.type === "image" && value && !/^\/images\/[\w/.-]+\.(webp|png|jpg)$/.test(value)) throw new ApiError(400, "INVALID_IMAGE");
+            fields[field.key] = value;
+        }
+        if (kind === "moderation" && body.status === "rejected" && !fields.reason) throw new ApiError(400, "REASON_REQUIRED");
+        const image = text(body.image ?? "", 200);
+        if (image && !/^\/images\/[\w/.-]+\.(webp|png|jpg)$/.test(image)) throw new ApiError(400, "INVALID_IMAGE");
+        const position = number(body.position, 1, 10000);
+        const record: StudioRecord = { id: current?.id ?? `${kind}_${randomUUID().slice(0, 8)}`, skinId: admin.skinId, kind, title: { fa: required(body.titleFa), en: required(body.titleEn) }, status: body.status, image, position, fields, updatedAt: new Date().toISOString() };
+        if (current) Object.assign(current, record); else data.studio.push(record);
+        audit(admin, `${kind}.${current ? "update" : "create"}`, record.id);
+        return Response.json(record);
+    }
     if (method === "GET" && ["users", "games", "contents", "events", "roles", "admins", "stats"].includes(resource)) {
         const scoped = scopedData(admin);
         const readPermission: Record<string, Permission> = { users: "users:read", games: "games:read", contents: "content:read", roles: "roles:write", admins: "roles:write", stats: "analytics:read" };
@@ -129,14 +178,18 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
         const body = await request.json();
         const current = id ? owned(data.games, id, admin) : undefined;
         const active = bool(body.active);
-        if (!current || current.active !== active || current.publication !== body.publication)
+        if (!current || current.active !== active || current.publication !== body.publication || (body.adminOnly !== undefined && current.adminOnly !== body.adminOnly))
             requirePermission(admin, "games:status");
         if (!["draft", "published"].includes(body.publication))
             throw new ApiError(400, "INVALID_STATUS");
         const cover = required(body.cover, 200);
         if (!/^\/images\/[\w/.-]+\.(webp|png|jpg)$/.test(cover))
             throw new ApiError(400, "INVALID_COVER");
-        const game: Game = { id: current?.id ?? `game_${randomUUID().slice(0, 8)}`, skinId: admin.skinId, title: { fa: required(body.titleFa), en: required(body.titleEn) }, description: { fa: text(body.descriptionFa), en: text(body.descriptionEn) }, cover, version: required(body.version, 30), levels: number(body.levels, 1, 50), active, publication: body.publication, category: required(body.category, 60), updatedAt: new Date().toISOString() };
+        const webGameUri = text(body.webGameUri ?? current?.webGameUri ?? "", 300);
+        if (webGameUri && !/^\/[\w/.-]+$/.test(webGameUri)) throw new ApiError(400, "INVALID_GAME_PATH");
+        const images = body.images ?? current?.images ?? [];
+        if (!Array.isArray(images) || images.length > 12 || !images.every(image => typeof image === "string" && /^\/images\/[\w/.-]+\.(webp|png|jpg)$/.test(image))) throw new ApiError(400, "INVALID_IMAGES");
+        const game: Game = { webGameUri, isLandscape: bool(body.isLandscape ?? current?.isLandscape ?? false), adminOnly: bool(body.adminOnly ?? current?.adminOnly ?? false), images, trailer: text(body.trailer ?? current?.trailer ?? "", 300), id: current?.id ?? `game_${randomUUID().slice(0, 8)}`, skinId: admin.skinId, title: { fa: required(body.titleFa), en: required(body.titleEn) }, description: { fa: text(body.descriptionFa), en: text(body.descriptionEn) }, cover, version: required(body.version, 30), levels: number(body.levels, 1, 50), active, publication: body.publication, category: required(body.category, 60), updatedAt: new Date().toISOString() };
         if (current)
             Object.assign(current, game);
         else

@@ -9,7 +9,7 @@ import { PlayIcon } from "@/components/icons/PlayIcon";
 import { PowerIcon } from "@/components/icons/power";
 import { CupIcon } from "@/components/icons/cup";
 import { WarningIcon } from "@/components/icons/warning";
-import { ApproveIcon } from "@/components/icons/approve";
+import { CheckIcon } from "@/components/icons/check";
 import { RejectIcon } from "@/components/icons/reject";
 import { ContentIcon } from "@/components/icons/content";
 import { LogoutIcon } from "@/components/icons/logout";
@@ -29,6 +29,7 @@ import { SettingsIcon } from "../icons/Setting";
 import { ReportIcon } from "../icons/Report";
 import { ExcelIcon } from "../icons/Excel";
 import { CsvIcon } from "../icons/csv";
+import { LayoutIcon, CategoriesIcon, AvatarIcon, ModerationIcon } from "../icons/admin-navigation";
 const icons: Record<string, ComponentType<IIconProps>> = {
   home: HomeIcon,
   users: UsersIcon,
@@ -41,8 +42,8 @@ const icons: Record<string, ComponentType<IIconProps>> = {
   cup: CupIcon,
   error: WarningIcon,
   warning: WarningIcon,
-  check: ApproveIcon,
-  approve: ApproveIcon,
+  check: CheckIcon,
+  approve: CheckIcon,
   reject: RejectIcon,
   content: ContentIcon,
   logout: LogoutIcon,
@@ -62,6 +63,10 @@ const icons: Record<string, ComponentType<IIconProps>> = {
   report: ReportIcon,
   excel: ExcelIcon,
   csv: CsvIcon,
+  layout: LayoutIcon,
+  categories: CategoriesIcon,
+  avatar: AvatarIcon,
+  moderation: ModerationIcon,
 };
 export function Icon({
   name,

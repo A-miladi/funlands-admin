@@ -1,6 +1,7 @@
 "use client";
-import { AdminProvider, useAdmin } from "./admin-context";
-import { AdminShell } from "./admin-shell";
+import { studioKinds, studioSections, type StudioKind } from "@/lib/admin/studio";
+import { StudioPage } from "./pages/studio";
+import { useAdmin } from "./admin-context";
 import { OverviewPage } from "./pages/overview";
 import { UsersPage, UserDetailPage } from "./pages/users";
 import { GamesPage, GameDetailPage, AnalyticsPage } from "./pages/games";
@@ -26,13 +27,13 @@ const required: Record<string, Permission> = {
 };
 function AdminContent({ segments }: { segments: string[] }) {
   const { data, l, can } = useAdmin();
-  const [page, id, operation, gameId] = segments,
-    path = "/" + segments.join("/");
-  let permission = required[page];
+  const [page, id, operation, gameId] = segments;
+  const studioKind = studioKinds.includes(page as StudioKind) ? page as StudioKind : null;
+  let permission = studioKind ? studioSections[studioKind].read : required[page];
   if (page === "content" && (id === "new" || operation === "edit"))
     permission = "content:write";
   return (
-    <AdminShell path={path}>
+    <>
       {data && permission && !can(permission) ? (
         <>
           <Heading title={l("دسترسی مجاز نیست", "Access denied")} />
@@ -43,6 +44,8 @@ function AdminContent({ segments }: { segments: string[] }) {
             )}
           </Info>
         </>
+      ) : studioKind ? (
+        <StudioPage kind={studioKind}/>
       ) : !page || page === "dashboard" ? (
         <OverviewPage />
       ) : page === "users" ? (
@@ -85,13 +88,9 @@ function AdminContent({ segments }: { segments: string[] }) {
       ) : (
         <SettingsPage />
       )}
-    </AdminShell>
+    </>
   );
 }
 export function AdminApp({ segments = [] }: { segments?: string[] }) {
-  return (
-    <AdminProvider>
-      <AdminContent segments={segments} />
-    </AdminProvider>
-  );
+  return <AdminContent key={segments.join("/")} segments={segments} />;
 }

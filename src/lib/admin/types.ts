@@ -1,3 +1,4 @@
+import type { StudioRecord } from "./studio";
 export type Locale = "fa" | "en";
 export type Localized = Record<Locale, string>;
 export type Permission = "users:read" | "users:write" | "games:read" | "games:write" | "games:status" | "analytics:read" | "errors:read" | "errors:write" | "content:read" | "content:write" | "content:delete" | "reports:read" | "roles:write";
@@ -29,6 +30,11 @@ export type Game = {
     title: Localized;
     description: Localized;
     cover: string;
+    webGameUri?: string;
+    isLandscape?: boolean;
+    adminOnly?: boolean;
+    images?: string[];
+    trailer?: string;
     version: string;
     updatedAt: string;
     active: boolean;
@@ -85,6 +91,7 @@ export type Audit = {
     at: string;
 };
 export type Dataset = {
+    studio: StudioRecord[];
     users: User[];
     games: Game[];
     events: GameEvent[];

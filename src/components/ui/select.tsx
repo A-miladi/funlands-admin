@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { useEffect, useId, useRef, useState, type ComponentProps, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -7,7 +8,7 @@ import { Button } from "./button";
 import { Icon } from "./icon";
 import { ChevronIcon } from "@/components/icons/chevron";
 
-export type SelectOption = { value: string; label: string; disabled?: boolean };
+export type SelectOption = { value: string; label: string; image?: string; disabled?: boolean };
 export type SelectProps = Omit<ComponentProps<"button">, "value" | "onChange" | "children" | "defaultValue"> & {
   options: readonly SelectOption[];
   value: string;
@@ -128,6 +129,7 @@ export function Select({ options, value, onValueChange, placeholder = "—", cla
       >
         <span className="flex min-w-0 items-center gap-2">
           {leadingIcon && <span aria-hidden="true" className="shrink-0 text-primary-400">{leadingIcon}</span>}
+          {options[selected]?.image && <Image src={options[selected].image} width={24} height={24} alt="" className="size-6 shrink-0 rounded-md object-cover"/>}
           <span className={cn("truncate", iconOnlyOnMobile && "max-sm:hidden")}>{options[selected]?.label ?? placeholder}</span>
         </span>
         {showChevron && <ChevronIcon size={14} className={cn("shrink-0 text-primary-400 transition-transform duration-150 motion-reduce:transition-none", iconOnlyOnMobile && "max-sm:hidden", open && "rotate-180")} />}
@@ -159,7 +161,7 @@ export function Select({ options, value, onValueChange, placeholder = "—", cla
                 option.disabled && "cursor-not-allowed opacity-40",
               )}
             >
-              <span>{option.label}</span>
+              {option.image && <Image src={option.image} width={24} height={24} alt="" className="size-6 shrink-0 rounded-md object-cover"/>}<span>{option.label}</span>
               {showCheck && option.value === value && <Icon name="check" className="size-4 text-primary-500 dark:text-primary-300" />}
             </div>
           ))}

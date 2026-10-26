@@ -26,3 +26,38 @@ test('Excel export is an actual OOXML ZIP with safe inline strings',()=>{const b
 
 const {persianParts,persianToDate,persianMonthDays}=load('../../components/ui/date-picker/persian-calendar');
 test('Persian calendar converts filter dates and handles Nowruz and leap Esfand',()=>{assert.deepEqual(persianParts(new Date('2026-10-26T00:00:00Z')),{year:1405,month:8,day:4});assert.equal(persianToDate(1405,8,4).toISOString().slice(0,10),'2026-10-26');assert.equal(persianToDate(1404,1,1).toISOString().slice(0,10),'2025-03-21');assert.equal(persianMonthDays(1403,12),30);assert.equal(persianMonthDays(1404,12),29);assert.throws(()=>persianToDate(1404,12,30));for(let month=1;month<=12;month++){const day=persianMonthDays(1405,month);assert.deepEqual(persianParts(persianToDate(1405,month,day)),{year:1405,month,day});}});
+
+test('studio demo covers every section with valid same-skin references',()=>{
+ const {studioKinds,studioSections}=load('studio'),d=createSeed();
+ for(const kind of studioKinds){const rows=d.studio.filter(r=>r.kind===kind);assert.ok(rows.length>0,kind);for(const row of rows){assert.ok(studioSections[kind].statuses.includes(row.status));for(const field of studioSections[kind].fields){const value=row.fields[field.key];if(!value)continue;if(field.options)assert.ok(field.options.includes(value),`${kind}.${field.key}`);if(['user','game','games','content','category'].includes(field.type)){const list=field.type==='user'?d.users:field.type==='content'?d.contents:field.type==='category'?d.studio:d.games;for(const id of field.type==='games'?value.split(','):[value])assert.ok(list.some(item=>item.id===id&&item.skinId===row.skinId),`${kind}.${field.key}: ${id}`);}}}}
+});
+function studioBody(record,patch={}){return {titleFa:record.title.fa,titleEn:record.title.en,status:record.status,image:record.image,position:record.position,fields:{...record.fields},...patch};}
+test('studio CRUD persists updates, validates references and writes audit records',async()=>{
+ const cookie=await login(),sample=store.data.studio.find(r=>r.kind==='landing');
+ const created=await (await call('studio/landing','POST',studioBody(sample,{titleFa:'سکشن تازه',titleEn:'New section',position:10}),cookie)).json();
+ assert.ok(store.data.studio.some(r=>r.id===created.id));
+ const edited=await (await call(`studio/landing/${created.id}`,'PATCH',studioBody(created,{position:1,status:'published'}),cookie)).json();assert.equal(edited.position,1);
+ await assert.rejects(()=>call(`studio/landing/${created.id}`,'PATCH',studioBody(created,{fields:{...created.fields,games:'other_game'}}),cookie),e=>e.status===400);
+ await call(`studio/landing/${created.id}`,'DELETE',undefined,cookie);assert.ok(!store.data.studio.some(r=>r.id===created.id));assert.ok(store.data.audit.some(r=>r.action==='landing.delete'));
+});
+test('studio enforces read/write permissions and does not leak another skin',async()=>{
+ const viewer=await login('viewer@funlands.ir'),content=await login('content@funlands.ir'),row=store.data.studio.find(r=>r.kind==='avatars');
+ await assert.rejects(()=>call(`studio/avatars/${row.id}`,'PATCH',studioBody(row),viewer),e=>e.status===403);
+ await assert.rejects(()=>call('studio/landing','GET',undefined,content),e=>e.status===403);
+ const bootstrap=await (await call('bootstrap','GET',undefined,content)).json();assert.ok(bootstrap.studio.every(r=>['categories','avatars','moderation'].includes(r.kind)));
+ store.data.studio.push({...row,id:'other_avatar',skinId:'other-skin'});
+ const rows=await (await call('studio/avatars','GET',undefined,viewer)).json();assert.ok(!rows.some(r=>r.id==='other_avatar'));
+ await assert.rejects(()=>call('studio/avatars/other_avatar','PATCH',studioBody(row),content),e=>e.status===404);
+ await assert.rejects(()=>call(`studio/avatars/${row.id}`,'DELETE',undefined,content),e=>e.status===403);
+});
+test('moderation requires a reason and linked avatar categories cannot be deleted',async()=>{
+ const cookie=await login(),review=store.data.studio.find(r=>r.kind==='moderation');
+ await assert.rejects(()=>call(`studio/moderation/${review.id}`,'PATCH',studioBody(review,{status:'rejected',fields:{...review.fields,reason:''}}),cookie),e=>e.message==='REASON_REQUIRED');
+ const rejected=await (await call(`studio/moderation/${review.id}`,'PATCH',studioBody(review,{status:'rejected',fields:{...review.fields,reason:'Needs review'}}),cookie)).json();assert.equal(rejected.status,'rejected');
+ await assert.rejects(()=>call('studio/categories/categories_6','DELETE',undefined,cookie),e=>e.status===409);
+});
+test('game runtime settings and gallery are saved and unsafe paths are rejected',async()=>{
+ const cookie=await login(),game=store.data.games[0];const body={titleFa:game.title.fa,titleEn:game.title.en,descriptionFa:game.description.fa,descriptionEn:game.description.en,version:game.version,levels:game.levels,active:game.active,publication:game.publication,category:game.category,cover:game.cover,webGameUri:'/games/demo/index.html',isLandscape:true,adminOnly:true,images:['/images/mock/game1.webp'],trailer:''};
+ const updated=await (await call(`games/${game.id}`,'PATCH',body,cookie)).json();assert.equal(updated.webGameUri,body.webGameUri);assert.equal(updated.adminOnly,true);assert.deepEqual(updated.images,body.images);
+ await assert.rejects(()=>call(`games/${game.id}`,'PATCH',{...body,webGameUri:'javascript:alert(1)'},cookie),e=>e.message==='INVALID_GAME_PATH');
+});
