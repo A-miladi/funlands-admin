@@ -3,7 +3,7 @@ import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast";
-import { api } from "@/lib/admin/client";
+import { signInDemo } from "@/app/[locale]/auth/login/actions";
 const subscribeToStorage = (callback: () => void) => {
     window.addEventListener("storage", callback);
     return () => window.removeEventListener("storage", callback);
@@ -32,8 +32,9 @@ export function useLoginModel() {
         setStatus("loading");
         let valid = false;
         try {
-            await api("login", "POST", { email: email.trim(), password });
-            valid = true;
+            const result = await signInDemo(email.trim(), password);
+            valid = result.ok;
+            if (!valid) { setStatus("error"); toast.error(t("error")); }
         } catch { setStatus("error"); toast.error(t("error")); }
         if (valid) {
             try {
@@ -48,8 +49,6 @@ export function useLoginModel() {
         }
         if (valid) {
             router.replace(`/${locale}`);
-            // The login Route Handler updates a cookie; invalidate prefetched guest routes.
-            router.refresh();
         }
         else
             setStatus("error");

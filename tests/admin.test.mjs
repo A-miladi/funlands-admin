@@ -10,7 +10,7 @@ const dirname=path.dirname(fileURLToPath(import.meta.url));
 const cache=new Map();
 function load(name){const file=path.resolve(dirname,'../src/lib/admin',name+'.ts');if(cache.has(file))return cache.get(file).exports;const record={exports:{}};cache.set(file,record);const js=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;new Function('require','module','exports',js)(name=>name.startsWith('.')?load(name.slice(2)):nodeRequire(name),record,record.exports);return record.exports;}
 const {createSeed}=load('seed'),{aggregate,filterEvents,defaultFilters,progress}=load('analytics'),{store,handleApi,ApiError}=load('server'),{workbookBytes}=load('export');
-beforeEach(()=>{store.data=createSeed();store.sessions.clear();store.files.clear();});
+beforeEach(()=>{store.data=createSeed();store.files.clear();});
 function request(route,method='GET',body,cookie){return new Request('http://localhost/api/admin/'+route,{method,headers:{...(cookie?{cookie}:{}),...(body&&!(body instanceof FormData)?{'Content-Type':'application/json'}:{})},body:body instanceof FormData?body:body?JSON.stringify(body):undefined});}
 async function login(email='admin@funlands.ir'){const response=await handleApi(request('login','POST',{email,password:'Funlands123!'}),['login']);assert.match(response.headers.get('set-cookie'),/HttpOnly/);return response.headers.get('set-cookie').split(';')[0];}
 const call=(route,method,body,cookie)=>handleApi(request(route,method,body,cookie),route.split('/'));
@@ -70,9 +70,19 @@ test('startup session lookup rejects stale cookies and disabled accounts before 
   const token = cookie.slice(cookie.indexOf('=') + 1);
   const admin = adminFromSession(token);
   assert.equal(admin.email, 'admin@funlands.ir');
-  store.sessions.get(token).expires = Date.now() - 1;
-  assert.throws(() => adminFromSession(token), e => e.status === 401);
-  store.sessions.get(token).expires = Date.now() + 10000;
+  const {createSessionToken} = load("session");
+  assert.throws(() => adminFromSession(createSessionToken(admin.id, Date.now() - 1)), e => e.status === 401);
   admin.active = false;
   assert.throws(() => adminFromSession(token), e => e.status === 401);
+});
+
+test('signed demo sessions survive independent server instances and reject tampering', async () => {
+  const cookie = await login(), token = cookie.slice(cookie.indexOf('=') + 1);
+  cache.clear();
+  const independentServer = load('server');
+  assert.equal(independentServer.adminFromSession(token).email, 'admin@funlands.ir');
+  const [payload, signature] = token.split('.');
+  const forged = Buffer.from(JSON.stringify({...JSON.parse(Buffer.from(payload, 'base64url')),adminId:'other_admin'})).toString('base64url');
+  assert.throws(() => independentServer.adminFromSession(forged+'.'+signature), e => e.status === 401);
+  assert.throws(() => independentServer.adminFromSession(payload+'.bad-signature'), e => e.status === 401);
 });

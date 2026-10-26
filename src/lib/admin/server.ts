@@ -1,9 +1,10 @@
 import { createStudioSeed } from "./studio-seed";
 import { studioSections, studioKinds, type StudioKind, type StudioSection, type StudioRecord } from "./studio";
+import { createSessionToken, readSessionToken } from "./session";
 import { randomUUID } from "node:crypto";
 import { createSeed } from "./seed";
 import { aggregate, defaultFilters, filterEvents } from "./analytics";
-import { permissions, eventTypes, type Dataset, type Session, type Admin, type Permission, type Game, type ContentType } from "./types";
+import { permissions, eventTypes, type Dataset, type Admin, type Permission, type Game, type ContentType } from "./types";
 type FileRecord = {
     id: string;
     skinId: string;
@@ -13,20 +14,24 @@ type FileRecord = {
 };
 type Store = {
     data: Dataset;
-    sessions: Map<string, Session>;
     files: Map<string, FileRecord>;
 };
 const globalStore = globalThis as typeof globalThis & {
     funlandsAdmin?: Store;
 };
-export const store = globalStore.funlandsAdmin ??= { data: createSeed(), sessions: new Map(), files: new Map() };
+export const store = globalStore.funlandsAdmin ??= { data: createSeed(), files: new Map() };
 store.data.studio ??= createStudioSeed(store.data.games.filter(game => game.skinId === "funlands"), store.data.users.filter(user => user.skinId === "funlands"), store.data.contents.filter(content => content.skinId === "funlands"));
 store.data.studio = store.data.studio.filter(row => studioKinds.includes(row.kind));
 export class ApiError extends Error {
     constructor(public status: number, message: string) { super(message); }
 }
+export function createDemoLoginSession(email: unknown, password: unknown) {
+    const admin = store.data.admins.find(a => a.email === String(email).toLowerCase().trim() && a.active);
+    if (!admin || password !== "Funlands123!") throw new ApiError(401, "INVALID_CREDENTIALS");
+    return createSessionToken(admin.id);
+}
 export function adminFromSession(token: string | undefined) {
-    const session = token ? store.sessions.get(token) : undefined;
+    const session = readSessionToken(token);
     if (!session || session.expires < Date.now()) throw new ApiError(401, "SESSION_REQUIRED");
     const admin = store.data.admins.find(a => a.id === session.adminId && a.active);
     if (!admin) throw new ApiError(401, "SESSION_REQUIRED");
@@ -75,18 +80,11 @@ export async function handleApi(request: Request, path: string[]): Promise<Respo
         assertOrigin(request);
     if (resource === "login" && method === "POST") {
         const body = await request.json();
-        const admin = store.data.admins.find(a => a.email === String(body.email).toLowerCase().trim() && a.active);
-        if (!admin || body.password !== "Funlands123!")
-            throw new ApiError(401, "INVALID_CREDENTIALS");
-        const token = randomUUID();
-        store.sessions.set(token, { token, adminId: admin.id, expires: Date.now() + 86400000 });
+        const token = createDemoLoginSession(body.email, body.password);
         return Response.json({ ok: true }, { headers: { "Set-Cookie": `funlands_session=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400${new URL(request.url).protocol === "https:" ? "; Secure" : ""}`, "Cache-Control": "no-store" } });
     }
     const admin = requireAdmin(request), data = store.data;
     if (resource === "logout" && method === "POST") {
-        const token = /(?:^|;\s*)funlands_session=([^;]+)/.exec(request.headers.get("cookie") ?? "")?.[1];
-        if (token)
-            store.sessions.delete(token);
         return Response.json({ ok: true }, { headers: { "Set-Cookie": "funlands_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0" } });
     }
     if (resource === "bootstrap" && method === "GET")

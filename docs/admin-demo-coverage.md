@@ -4,7 +4,7 @@ Sources: LifeLands_Skin_Admin.pdf (13 sections, acceptance checklist) and the cl
 
 ## Demo boundary
 
-All people, games, events and resources are synthetic. No production service is contacted. The local Next route handler stores records and uploaded file bytes in process memory; restarting the server restores the seed. Browser cookies contain an opaque, HttpOnly demo session and the theme/locale preferences. The demo password is intentionally public, not production authentication.
+All people, games, events and resources are synthetic. No production service is contacted. The local Next route handler stores records and uploaded file bytes in process memory; restarting the server restores the seed. Browser cookies contain an HMAC-signed, HttpOnly demo session and the theme/locale preferences. Session verification is stateless and survives separate Vercel function instances; it expires after 24 hours. Signing uses ADMIN_SESSION_SECRET when configured, with an intentionally public stable fallback for the public mock accounts. Signing is not encryption: the payload contains only an admin ID, expiry and nonce. Logout clears the browser cookie; server-wide revocation requires a persistent session store. The demo password is intentionally public, not production authentication.
 
 Login: `admin@funlands.ir` / `Funlands123!`. Other demo accounts: `content@funlands.ir`, `games@funlands.ir`, `support@funlands.ir`, `viewer@funlands.ir`; same password. Added admin accounts also use this demo password. Settings allows explicit switching between the seeded accounts.
 
@@ -68,3 +68,7 @@ All API methods enforce session and resource scope independently of the UI. Reas
 Run `npm test`, `npm run lint`, `npm run build -- --webpack`.
 
 Production handoff still requires a real identity provider, persistent database/object storage, production event ingestion, deployment policies and operational security. Those integrations are deliberately outside this mock-data deliverable.
+
+## Vercel mock login
+
+Login uses a Server Action so writing the cookie invalidates prefetched guest routes before dashboard navigation. Session validation never depends on a process-local Map. Set `ADMIN_SESSION_SECRET` to the same private random value across all functions for a private deployment; the public mock fallback works without configuration. Rotating this value signs everyone out. Changes require a new deployment. Resource edits, uploaded files and added accounts remain process-local mock data and may reset across serverless instances; this change makes the seeded demo login portable, not the whole repository persistent.
