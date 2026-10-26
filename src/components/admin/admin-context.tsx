@@ -1,32 +1,42 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useLocale } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
+import { useRouter as useNextRouter } from "next/navigation";
 import { toast } from "@/lib/toast";
 import { api, loadAdmin } from "@/lib/admin/client";
 import { defaultFilters } from "@/lib/admin/analytics";
 import type { Bootstrap, Filters, Permission } from "@/lib/admin/types";
 export function useAdminModel() {
     const locale = useLocale() as "fa" | "en", router = useRouter();
+    const sessionRouter = useNextRouter();
+    const pathname = usePathname();
     const [data, setData] = useState<Bootstrap | null>(null), [error, setError] = useState(""), [filters, setFilters] = useState<Filters>(defaultFilters);
     const l = useCallback((fa: string, en: string) => locale === "fa" ? fa : en, [locale]);
-    const refresh = useCallback(async () => { try {
-        setData(await loadAdmin());
-        setError("");
-    }
-    catch (e) {
-        const message = (e as Error).message;
-        if (message === "SESSION_REQUIRED")
-            router.replace("/auth/login");
-        else
-            setError(message);
-    } }, [router]);
-    useEffect(() => { let alive = true; loadAdmin().then(result => { if (alive)
-        setData(result); }).catch(e => { if (!alive)
-        return; if (e.message === "SESSION_REQUIRED")
-        router.replace("/auth/login");
-    else
-        setError(e.message); }); return () => { alive = false; }; }, [router]);
+    const handleSessionError = useCallback((cause: unknown) => {
+        const message = cause instanceof Error ? cause.message : "REQUEST_FAILED";
+        setError(message);
+        if (message === "SESSION_REQUIRED") {
+            setData(null);
+            // Session redirects must not depend on the progress transition's router identity.
+            sessionRouter.replace(`/${locale}/auth/login`);
+        }
+    }, [locale, sessionRouter]);
+    const refresh = useCallback(async () => {
+        try {
+            setData(await loadAdmin());
+            setError("");
+        } catch (cause) { handleSessionError(cause); }
+    }, [handleSessionError]);
+    useEffect(() => {
+        const controller = new AbortController();
+        loadAdmin(controller.signal).then(result => {
+            if (!controller.signal.aborted) { setData(result); setError(""); }
+        }).catch(cause => {
+            if (!controller.signal.aborted) handleSessionError(cause);
+        });
+        return () => controller.abort();
+    }, [pathname, handleSessionError]);
     const can = (p: Permission) => !!data?.currentRole.permissions.includes(p);
     async function mutate(path: string, method: string, body?: unknown) {
         try {

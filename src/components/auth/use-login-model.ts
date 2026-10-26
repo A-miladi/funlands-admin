@@ -1,7 +1,7 @@
 "use client";
 import { useState, useSyncExternalStore, type FormEvent } from "react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast";
 import { api } from "@/lib/admin/client";
 const subscribeToStorage = (callback: () => void) => {
@@ -19,6 +19,7 @@ function readRememberedEmail() {
 export function useLoginModel() {
     const t = useTranslations("Auth");
     const router = useRouter();
+    const locale = useLocale();
     const savedEmail = useSyncExternalStore(subscribeToStorage, readRememberedEmail, () => "");
     const [editedEmail, setEmail] = useState<string | null>(null);
     const email = editedEmail ?? savedEmail;
@@ -45,8 +46,11 @@ export function useLoginModel() {
                 /* Sign-in preview also works when browser storage is unavailable. */
             }
         }
-        if (valid)
-            router.push("/");
+        if (valid) {
+            router.replace(`/${locale}`);
+            // The login Route Handler updates a cookie; invalidate prefetched guest routes.
+            router.refresh();
+        }
         else
             setStatus("error");
     }
