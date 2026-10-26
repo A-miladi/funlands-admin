@@ -1,0 +1,347 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Shared font definitions and palette copied from funlands-web. */
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: var(--color-base-900);
+    --media-card-end: var(--color-light-info-100);
+    --media-card-start: var(--color-base-100);
+  }
+
+  .dark {
+    --background: var(--color-background-300);
+    --foreground: var(--color-title);
+    --media-card-start: var(--color-card-100);
+    --media-card-end: var(--color-card-200);
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  html:lang(fa) {
+    font-family: var(--font-iransans);
+  }
+}
+
+/* =====================================================
+ * THEME TOKENS (Tailwind v4)
+ * ===================================================== */
+@theme inline {
+  /* ---------- Fonts ---------- */
+  --font-sans: "Inter", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-inter: "Inter", sans-serif;
+  --font-orbitron: "Orbitron", "Morabba", sans-serif;
+  --font-morabba: "Morabba", sans-serif;
+  --font-iransans: "IranSans", sans-serif;
+
+  --color-media-card-100: var(--media-card-start);
+  --color-media-card-200: var(--media-card-end);
+
+  /* ---------- Card ---------- */
+  --color-card-100: #2a4246;
+  --color-card-200: #1e202a;
+  --color-card-300: #1d2e43;
+  --color-card-400: #0a001a;
+
+  /* ---------- Gray ---------- */
+  --color-gray-900: #330a58;
+  --color-gray-800: #56178f;
+  --color-gray-750: #651ca8;
+  --color-gray-700: #651ca8;
+  --color-gray-600: #7824c7;
+  --color-gray-500: #8d2ceb;
+  --color-gray-400: #9c59f2;
+  --color-gray-300: #ab83ee;
+  --color-gray-200: #ceb9f9;
+  --color-gray-100: #e3d7fb;
+  --color-gray-50: #f0ebfd;
+
+  /* ---------- Backgrounds ---------- */
+  --color-background-300: #0a001a;
+  --color-background-200: #150a26;
+  --color-background-100: #19143d;
+
+  /* ---------- Primary ---------- */
+  --color-primary-900: #330a58;
+  --color-primary-800: #56178f;
+  --color-primary-700: #651ca8;
+  --color-primary-600: #7824c7;
+  --color-primary-500: #8d2ceb;
+  --color-primary-400: #9c59f2;
+  --color-primary-300: #ab83ee;
+  --color-primary-200: #ceb9f9;
+  --color-primary-100: #e3d7fb;
+  --color-primary-50: #f0ebfd;
+
+  /* ---------- Fuchsia ---------- */
+  --color-fuchsia-50: #faf5ff;
+  --color-fuchsia-100: #f3e5ff;
+  --color-fuchsia-200: #e5ccff;
+  --color-fuchsia-300: #cfa3ff;
+  --color-fuchsia-400: #b06eff;
+  --color-fuchsia-500: #8d2ceb;
+  --color-fuchsia-600: #7a1fd6;
+  --color-fuchsia-700: #6616b3;
+  --color-fuchsia-800: #521290;
+  --color-fuchsia-900: #3d0d6b;
+  --color-fuchsia-950: #250645;
+
+  /* ---------- Info ---------- */
+  --color-info-50: #f0f9ff;
+  --color-info-100: #e0f2fe;
+  --color-info-200: #b9e6fe;
+  --color-info-300: #7cd4fd;
+  --color-info-400: #36bffa;
+  --color-info-500: #0ba5ec;
+  --color-info-600: #0086c9;
+  --color-info-700: #026aa2;
+  --color-info-800: #065986;
+  --color-info-900: #0b4a6f;
+  --color-info-950: #062c41;
+
+  /* ---------- Success ---------- */
+  --color-success-900: #135508;
+  --color-success-800: #18680c;
+  --color-success-700: #1a8612;
+  --color-success-600: #1faf27;
+  --color-success-500: #26cf3a;
+  --color-success-400: #2eef49;
+  --color-success-300: #77fd7e;
+  --color-success-200: #bffebe;
+  --color-success-100: #e1fee0;
+
+  /* ---------- Warning ---------- */
+  --color-warning-900: #6e3400;
+  --color-warning-800: #844100;
+  --color-warning-700: #a35500;
+  --color-warning-600: #ca7200;
+  --color-warning-500: #f59e0b;
+  --color-warning-400: #ffbb77;
+  --color-warning-300: #ffd6b0;
+  --color-warning-200: #ffe9d6;
+  --color-warning-100: #fff5ec;
+
+  /* ---------- Error ---------- */
+  --color-error-900: #88000e;
+  --color-error-800: #a10014;
+  --color-error-700: #c4001d;
+  --color-error-600: #f1002a;
+  --color-error-500: #ff5b5b;
+  --color-error-400: #ff8f8a;
+  --color-error-300: #ffb6b1;
+  --color-error-200: #ffd5d1;
+  --color-error-100: #ffe9e7;
+  --color-error-50: #fff5f4;
+
+  /* ---------- Semantic ---------- */
+  --color-text: #637083;
+  --color-paragraph: #97a1af;
+  --color-border: #ced2da;
+  --color-title: #f2f4f7;
+  --color-disable: #726383;
+
+  /* ---------- Base (Light theme palette) ---------- */
+  --color-base-900: #151c24;
+  --color-base-800: #202b37;
+  --color-base-750: #344051;
+  --color-base-700: #414e62;
+  --color-base-600: #637083;
+  --color-base-500: #97a1af;
+  --color-base-400: #ced2da;
+  --color-base-300: #e4e7ec;
+  --color-base-200: #f2f4f7;
+  --color-base-100: #f9fafb;
+  --color-base-050: #ffffff;
+
+  /* ---------- Light Primary ---------- */
+  --color-light-primary-900: #1c4a4a;
+  --color-light-primary-800: #256060;
+  --color-light-primary-700: #347878;
+  --color-light-primary-600: #419292;
+  --color-light-primary-500: #51a8a8;
+  --color-light-primary-400: #6bbebe;
+  --color-light-primary-300: #8bd1d1;
+  --color-light-primary-200: #b3e2e2;
+  --color-light-primary-100: #d6f0f0;
+  --color-light-primary-050: #f0fafa;
+
+  /* ---------- Light Info ---------- */
+  --color-light-info-900: #1c3d5a;
+  --color-light-info-800: #254f70;
+  --color-light-info-700: #2e648e;
+  --color-light-info-600: #3a7cb0;
+  --color-light-info-500: #4a95cf;
+  --color-light-info-400: #66aee3;
+  --color-light-info-300: #8cc8f0;
+  --color-light-info-200: #b8dff8;
+  --color-light-info-100: #dcf0fc;
+  --color-light-info-050: #f0f8ff;
+
+  /* ---------- Light Success ---------- */
+  --color-light-success-900: #1c5a3a;
+  --color-light-success-800: #23704a;
+  --color-light-success-700: #2c8a5b;
+  --color-light-success-600: #37a66e;
+  --color-light-success-500: #45c285;
+  --color-light-success-400: #66d6a0;
+  --color-light-success-300: #8ce6ba;
+  --color-light-success-200: #bcf2d6;
+  --color-light-success-100: #dff9ec;
+  --color-light-success-050: #f0fcf6;
+
+  /* ---------- Light Warning ---------- */
+  --color-light-warning-900: #804a00;
+  --color-light-warning-800: #9c5a00;
+  --color-light-warning-700: #ba6c00;
+  --color-light-warning-600: #d98200;
+  --color-light-warning-500: #f59e0b;
+  --color-light-warning-400: #ffb84d;
+  --color-light-warning-300: #ffce80;
+  --color-light-warning-200: #ffe3b3;
+  --color-light-warning-100: #fff2d9;
+  --color-light-warning-050: #fff9f0;
+
+  /* ---------- Light Error ---------- */
+  --color-light-error-900: #801414;
+  --color-light-error-800: #9c1c1c;
+  --color-light-error-700: #ba2424;
+  --color-light-error-600: #d92e2e;
+  --color-light-error-500: #f54a4a;
+  --color-light-error-400: #ff7373;
+  --color-light-error-300: #ff9e9e;
+  --color-light-error-200: #ffc9c9;
+  --color-light-error-100: #ffe5e5;
+  --color-light-error-050: #fff5f5;
+}
+
+/* =====================================================
+ * FONT FACE — English
+ * ===================================================== */
+@font-face {
+  font-family: "Orbitron";
+  src: url("/fonts/Orbitron/Orbitron-VariableFont_wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter/Inter-VariableFont_opsz,wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* =====================================================
+ * FONT FACE — Persian
+ * ===================================================== */
+@font-face {
+  font-family: "Morabba";
+  src: url("/fonts/Morabba/Morabba-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Morabba";
+  src: url("/fonts/Morabba/Morabba-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Morabba";
+  src: url("/fonts/Morabba/Morabba-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Morabba";
+  src: url("/fonts/Morabba/Morabba-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Morabba";
+  src: url("/fonts/Morabba/Morabba-ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IranSans";
+  src: url("/fonts/IranSans/IRANSansXFaNum-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IranSans";
+  src: url("/fonts/IranSans/IRANSansXFaNum-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IranSans";
+  src: url("/fonts/IranSans/IRANSansXFaNum-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IranSans";
+  src: url("/fonts/IranSans/IRANSansXFaNum-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IranSans";
+  src: url("/fonts/IranSans/IRANSansXFaNum-ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* =====================================================
+ * FONT UTILITY CLASSES
+ * ===================================================== */
+.font-inter {
+  font-family: "Inter", sans-serif;
+}
+
+.font-orbitron {
+  font-family: "Orbitron", "Morabba", sans-serif;
+}
+
+.font-morabba {
+  font-family: "Morabba", sans-serif;
+}
+
+.font-iransans {
+  font-family: "IranSans", sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}

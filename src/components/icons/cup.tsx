@@ -1,0 +1,2 @@
+import type { IIconProps } from "@/types/icon";
+export function CupIcon({size=24,color="currentColor",className}:IIconProps){return <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0V3ZM7 5H3v3a4 4 0 0 0 5 4m9-7h4v3a4 4 0 0 1-5 4M12 13v7m-4 1h8"/></svg>;}

@@ -1,0 +1,67 @@
+{
+  "generator": "built-in image_gen",
+  "source": "LifeLands_Skin_Admin.pdf",
+  "basePrompt": "Use case: ui-mockup. Create ONE complete high-fidelity desktop web admin screen, 1600x1100 landscape screenshot composition, crisp flat UI, edge-to-edge no browser chrome no device frame no collage. Product Funlands Admin, Persian RTL. Professional polished analytical product design, generous whitespace, fine borders, 12px card corners, restrained shadows, precise alignment, compact readable tables and elegant charts. Typography visually matching IranSans X Persian body and Morabba Persian headings, Inter for Latin metrics and code. Correct readable Persian text, Persian numerals, real product hierarchy. Shared shell on all non-login pages: 240px RIGHT sidebar with Funlands wordmark at top, skin selector فان‌لندز and navigation داشبورد / کاربران / بازی‌ها / خطاها / محتوا / گزارش‌ها with thin line icons and purple selected item. Top bar within main area: breadcrumb on right, search, moon/sun theme icon and EN language toggle, notification and admin avatar initials on left. Small sidebar bottom admin role مدیر پوسته and خروج. Show only anonymous user IDs; no personal child data. Use explicit palette faithfully: dark background #0a001a, dark elevated #150a26, dark card #19143d, primary #8d2ceb, primary hover #7824c7, primary pale #ceb9f9, white text #f2f4f7, muted #97a1af, info #0ba5ec, success #26cf3a, warning #f59e0b, error #ff5b5b. Light: background #ffffff with pale page areas #f9fafb, surfaces white, text #151c24, muted #637083, borders #e4e7ec, primary violet #8d2ceb with selected background #f0ebfd; supplementary light teal #51a8a8, info #4a95cf, success #45c285, warning #f59e0b, error #f54a4a. No gradients on cards, no neon glow, no giant empty decorative areas, no fake device or presentation headings. Fill screen with complete thoughtful UI, maintain strong usable contrast. This is a design proposal with illustrative sample analytics, not real data.",
+  "screens": [
+    [
+      "01-login",
+      "ورود مدیر",
+      "A refined login page. Centered compact login card with Funlands wordmark, heading ورود به پنل مدیریت, email and password fields, show password icon, remember checkbox, primary ورود button, small security note. Beside it restrained geometric purple brand artwork; no sidebar on login."
+    ],
+    [
+      "02-dashboard",
+      "داشبورد",
+      "Dashboard overview. 6 KPI cards: کاربران ۱۲٬۴۸۰, بازی‌های فعال ۲۴, Run ۴۸٬۲۱۰, Start ۴۱٬۹۸۰, نرخ تکمیل ۶۸٪, خطاها ۱۲۸. Date filter امروز / ۷ روز / ۳۰ روز / دلخواه. Large two-series Run/Start line chart. Level completion bar chart. Lower games performance table and recent technical incidents. Distinguish Run from Start."
+    ],
+    [
+      "03-users",
+      "کاربران",
+      "Users list. Search anonymous identifier, date range, CSV export. Summary strip for total active and returning users. Large sortable table columns شناسه ناشناس, تاریخ عضویت, بازی‌های یکتا, Run, تکمیل‌شده, آخرین فعالیت. 8 realistic anonymous rows usr_a83f etc, no real names or photos or child personal data. Pagination."
+    ],
+    [
+      "04-user-detail",
+      "جزئیات کاربر",
+      "Anonymous user detail usr_a83f. Breadcrumb کاربران / usr_a83f. Metrics for unique games, Run, Start, completed games, valid playtime. Activity trend chart. Per-game progress table with thumbnails, highest level, percent progress bars, last activity. Recent event timeline right within main area. No personal identity."
+    ],
+    [
+      "05-games",
+      "بازی‌ها",
+      "Game management list. Search, active/inactive filter, view-mode control. Table of 7 assigned games with colorful small cover illustrations, unique ID, Persian title, version v2.4.1, updated date, active badge, users, completion, detail action. Top small summary cards. Read-only view with a clear lock note that edit requires permission."
+    ],
+    [
+      "06-game-detail",
+      "جزئیات بازی",
+      "Game detail for جزیره اعداد. Cover thumbnail, title, version, active badge. Tabs اطلاعات پایه / عملکرد / کاربران / مراحل / خطاها, performance selected. Six KPI tiles including Run and Start separately, unique users, completion, average and total session duration. Execution trend chart, level funnel from 1 through 6, user completion table with transparent denominator labels."
+    ],
+    [
+      "07-user-game",
+      "پیشرفت کاربر در بازی",
+      "Individual user-game analytics. Breadcrumb کاربران / usr_a83f / جزیره اعداد. User ID and game title, 75% progress hero card. Run ۱۸, Start ۱۵, highest level ۶, completed levels ۶ از ۸, total time ۴۲ دقیقه, last activity. Eight level progress nodes with 6 completed 2 incomplete. Execution history table with session ID, timestamps, duration, outcome. No personal details."
+    ],
+    [
+      "08-errors",
+      "خطاها و اجراها",
+      "Technical health dashboard. KPIs load success ۹۸٫۴٪, execution success ۹۶٫۸٪, failed executions ۸۴, Crash ۱۲. Event filter chips دریافت / Load / Run / Start / Crash, game and status filters. Time-series incidents chart. Large log table time, game, event type, error code, version, session ID, anonymous user ID. Amber warning and restrained red error badges."
+    ],
+    [
+      "09-error-detail",
+      "جزئیات خطا",
+      "Technical incident detail. Breadcrumb خطاها / err_0192. Error title GAME_LOAD_TIMEOUT and failure badge. Metadata grid anonymous user, game ID, version, timestamp, run/session ID. Technical timeline دریافت successful / Load failed / Run not reached / Start not reached. Sanitized monospace stack trace panel with no secrets. Side card frequency trend and affected versions. Clear read-only investigation interface."
+    ],
+    [
+      "10-content",
+      "محتوای چندرسانه‌ای",
+      "Media content library. Tabs همه / کتاب / ویدئو / صوت / نقاشی with counts. Prominent آپلود محتوا button, search and status filter, grid/table toggle. Polished 8-card library grid with two books, two videos, two audio artworks, two drawings. Each card title, type, size, date, active/inactive badge, overflow menu. Compact pagination. Professional illustrative thumbnails, not stock photos of children."
+    ],
+    [
+      "11-content-editor",
+      "آپلود و ویرایش محتوا",
+      "Media upload/editor screen. Breadcrumb محتوا / افزودن محتوا. Main form title, content type selector with 4 options کتاب / ویدئو / صوت / نقاشی, description textarea, large drag-drop file area with upload progress sample, small replacement option. Right preview card for cover and title. Status active/inactive selector. Allowed format and size helper displayed as sample configurable policies, save and cancel buttons. Permission-gated delete in subtle danger zone. Avoid invented fixed storage limits."
+    ],
+    [
+      "12-reports-access",
+      "گزارش‌ها و دسترسی‌ها",
+      "Reports workspace with tabs گزارش‌ها / دسترسی‌ها. Main reports tab: game comparison chart, date/game/user filters, report type individual/aggregate, completion denominator explanatory line, export CSV and Excel controls, generated reports table with scope ستون پوسته Funlands. Right persistent scope/permission summary card showing current admin restricted to Funlands, view analytics allowed, content upload allowed, destructive operations require separate permission. No data from other skins."
+    ]
+  ]
+}
